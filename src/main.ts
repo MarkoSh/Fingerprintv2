@@ -2,7 +2,7 @@
 
 declare const chrome: any;
 
-class fingerPrintClass {
+class fingerPrintBackgroundClass {
 	constructor() {
 		const $this = this;
 
@@ -195,4 +195,4 @@ class fingerPrintContentClass {
 
 class fingerPrintInjectClass {}
 
-new fingerPrintClass();
+new fingerPrintBackgroundClass();
