@@ -75,7 +75,7 @@ class fingerPrintBackgroundClass {
 					delete cookie.session;
 					cookie.url = sender.tab.url;
 					try {
-						await chrome.cookies.set( cookie );
+						await chrome.cookies.set( cookie ); // Работает в контексте обычного браузера, не затрагивая режим инкогнито, так что не пытайтесь перенести отпечаток в инкогнито, не сработает
 					} catch ( error ) {}
 				} );
 				sendResponse( {
