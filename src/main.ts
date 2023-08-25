@@ -204,10 +204,10 @@ class fingerPrintContentClass {
 							suggestedName: `${ +new Date }_fingerprint.json`,
 							types: [
 								{
-								  description: 'Fingerprint json',
-								  accept: {
-									'application/json': [ '.json' ]
-								  }
+									description: 'Fingerprint json',
+									accept: {
+										'application/json': [ '.json' ]
+									}
 								},
 							]
 						} );
@@ -218,7 +218,7 @@ class fingerPrintContentClass {
 
 						await writable.close();
 
-						$this.notify( "Fingerprint saved to file" );
+						$this.notify( "Fingerprint stored to file" );
 
 						return;
 					}
