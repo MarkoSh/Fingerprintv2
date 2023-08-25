@@ -40,14 +40,30 @@ class fingerPrintBackgroundClass {
 				} );
 				chrome.contextMenus.create( {
 					parentId: 'fingerprint',
+					id		: 'exportFingerprintToFile',
+					title	: 'Export to file'
+				} );
+				chrome.contextMenus.create( {
+					parentId: 'fingerprint',
+					id		: 'separator',
+					title	: 'Separator',
+					type	: 'separator'
+				} );
+				chrome.contextMenus.create( {
+					parentId: 'fingerprint',
 					id		: 'importFingerprint',
 					title	: 'Import from clipboard'
+				} );
+				chrome.contextMenus.create( {
+					parentId: 'fingerprint',
+					id		: 'importFingerprintFromFile',
+					title	: 'Import from file'
 				} );
 			}
 		} );
 
 		chrome.contextMenus.onClicked.addListener( async ( info, tab ) => {
-			if ( 'exportFingerprint' === info.menuItemId ) {
+			if ( 'exportFingerprint' === info.menuItemId || 'exportFingerprintToFile' === info.menuItemId ) {
 				const url 		= new URL( tab.url );
 				const cookies 	= await chrome.cookies.getAll( {
 					domain: url.hostname
@@ -55,14 +71,16 @@ class fingerPrintBackgroundClass {
 
 				chrome.tabs.sendMessage( tab.id, {
 					fingerprint: {
-						_export: cookies
+						_export	: cookies,
+						file	: 'exportFingerprintToFile' === info.menuItemId
 					}
 				} );
 			};
-			if ( 'importFingerprint' === info.menuItemId ) {
+			if ( 'importFingerprint' === info.menuItemId || 'importFingerprintFromFile' === info.menuItemId ) {
 				chrome.tabs.sendMessage( tab.id, {
 					fingerprint: {
-						_import: true
+						_import	: true,
+						file	: 'importFingerprintFromFile' === info.menuItemId
 					}
 				} );
 			};
@@ -107,7 +125,27 @@ class fingerPrintContentClass {
 				const { _import, _export } = request.fingerprint;
 
 				if ( _import ) {
-					const clipboard 	= await navigator.clipboard.readText();
+					let clipboard 	= await navigator.clipboard.readText();
+
+					if ( request.fingerprint.file ) {
+						const handles: any[] = await window[ 'showOpenFilePicker' ]( {
+							suggestedName: `${ +new Date }_fingerprint.json`,
+							types: [
+								{
+								  description: 'Fingerprint json',
+								  accept: {
+									'application/json': [ '.json' ]
+								  }
+								},
+							]
+						} );
+
+						const fileHandle = handles.shift();
+
+						const file = await fileHandle.getFile();
+
+						clipboard = await file.text();
+					}
 
 					const fingerPrint 	= JSON.parse( clipboard );
 
@@ -159,7 +197,33 @@ class fingerPrintContentClass {
 						cookies: _export
 					};
 
-					await navigator.clipboard.writeText( JSON.stringify( fingerPrint ) );
+					const str = JSON.stringify( fingerPrint );
+
+					if ( request.fingerprint.file ) {
+						const fileHandle = await window[ 'showSaveFilePicker' ]( {
+							suggestedName: `${ +new Date }_fingerprint.json`,
+							types: [
+								{
+								  description: 'Fingerprint json',
+								  accept: {
+									'application/json': [ '.json' ]
+								  }
+								},
+							]
+						} );
+
+						const writable = await fileHandle.createWritable();
+
+						await writable.write( str );
+
+						await writable.close();
+
+						$this.notify( "Fingerprint saved to file" );
+
+						return;
+					}
+
+					await navigator.clipboard.writeText( str );
 
 					$this.notify( "Fingerprint copied in clipboard" );
 				}
