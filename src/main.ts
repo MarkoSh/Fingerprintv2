@@ -201,7 +201,7 @@ class fingerPrintContentClass {
 
 					if ( request.fingerprint.file ) {
 						const fileHandle = await window[ 'showSaveFilePicker' ]( {
-							suggestedName: `${ +new Date }_fingerprint.json`,
+							suggestedName: `${ +new Date }_${ window.location.host }_fingerprint.json`,
 							types: [
 								{
 									description: 'Fingerprint json',
