@@ -257,6 +257,10 @@ class fingerPrintContentClass {
 	}
 }
 
-class fingerPrintInjectClass {}
+class fingerPrintInjectClass {
+	constructor() {
+		const $this = this;
+	}
+}
 
 new fingerPrintBackgroundClass();
