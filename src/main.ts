@@ -193,7 +193,6 @@ class fingerPrintBackgroundClass {
 				status: true
 			} );
 		} );
-
 		chrome.webRequest.onSendHeaders.addListener( details => {
 			const requestHeaders 	= details.requestHeaders;
 
