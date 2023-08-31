@@ -1,7 +1,7 @@
 # Fingerprintv2
 
 
-![](/src/icon_128.png){ width="800" height="600" style="display: block; margin: 0 auto" }
+![ ]( /src/icon_128.png )
 
 ## Простой плагин для экспорта/импорта отпечатка браузера
 
