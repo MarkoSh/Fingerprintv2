@@ -59,6 +59,17 @@ class fingerPrintBackgroundClass {
 					id		: 'importFingerprintFromFile',
 					title	: 'Import from file'
 				} );
+				chrome.contextMenus.create( {
+					parentId: 'fingerprint',
+					id		: 'separator1',
+					title	: 'Separator',
+					type	: 'separator'
+				} );
+				chrome.contextMenus.create( {
+					parentId: 'fingerprint',
+					id		: 'clear',
+					title	: 'Clear User-Agent override'
+				} );
 			}
 		} );
 
@@ -84,9 +95,88 @@ class fingerPrintBackgroundClass {
 					}
 				} );
 			};
+			if ( 'clear' === info.menuItemId ) {
+				const currentRules 		= await chrome.declarativeNetRequest.getDynamicRules();
+
+				const removeRuleIds 	= currentRules.map( rule => rule.id );
+
+				await chrome.declarativeNetRequest.updateDynamicRules( {
+					removeRuleIds,
+				} );
+
+				await chrome.storage.local.clear();
+				chrome.tabs.sendMessage( tab.id, {
+					fingerprint: {
+						clear	: true,
+					}
+				} );
+			};
 		} );
 
 		chrome.runtime.onMessage.addListener( async ( request, sender, sendResponse ) => {
+			if ( request.userAgent ) {
+				if ( navigator.userAgent !== request.userAgent ) {
+					const url 	= new URL( sender.origin );
+					const host 	= url.host;
+
+					let storage = await chrome.storage.local.get();
+
+					if ( ! storage.UA ) {
+						await chrome.storage.local.set( {
+							UA: {}
+						} );
+
+						storage = await chrome.storage.local.get();
+					}
+
+					if ( ! storage.UA[ host ] ) {
+						storage.UA[ host ] 	= request.userAgent;
+						storage = await chrome.storage.local.set( {
+							UA: storage.UA
+						} );
+					}
+
+					const currentRules 		= await chrome.declarativeNetRequest.getDynamicRules();
+
+					const removeRuleIds 	= currentRules.map( rule => rule.id );
+
+					const addRules 			= [ {
+						id: 1,
+						priority: 1,
+						action: {
+							type: 'modifyHeaders',
+							requestHeaders: [ {
+								header		: 'User-Agent',
+								operation	: chrome.declarativeNetRequest.HeaderOperation.SET,
+								value		: request.userAgent
+							}, {
+								header		: 'Customizer',
+								operation	: chrome.declarativeNetRequest.HeaderOperation.SET,
+								value		: request.userAgent
+							} ]
+						},
+						condition: {
+							resourceTypes: [
+								"main_frame",
+								"sub_frame",
+								"stylesheet",
+								"script",
+								"image",
+								"font",
+								"object",
+								"xmlhttprequest",
+								"ping",
+								"csp_report"
+							]
+						}
+					} ];
+
+					await chrome.declarativeNetRequest.updateDynamicRules( {
+						removeRuleIds,
+						addRules
+					} );
+				}
+			}
 			if ( request.cookies ) {
 				request.cookies.map( async ( cookie ) => {
 					delete cookie.hostOnly;
@@ -96,10 +186,10 @@ class fingerPrintBackgroundClass {
 						await chrome.cookies.set( cookie ); // Работает в контексте обычного браузера, не затрагивая режим инкогнито, так что не пытайтесь перенести отпечаток в инкогнито, не сработает
 					} catch ( error ) {}
 				} );
-				sendResponse( {
-					status: true
-				} );
 			}
+			sendResponse( {
+				status: true
+			} );
 		} );
 	}
 }
@@ -122,7 +212,7 @@ class fingerPrintContentClass {
 
 		chrome.runtime.onMessage.addListener( async ( request, sender, sendResponse ) => {
 			if ( request.fingerprint ) {
-				const { _import, _export } = request.fingerprint;
+				const { _import, _export, clear } = request.fingerprint;
 
 				if ( _import ) {
 					let clipboard 	= await navigator.clipboard.readText();
@@ -185,6 +275,16 @@ class fingerPrintContentClass {
 						} );
 					}
 
+					if ( userAgent ) {
+						await new Promise( ( resolve, reject ) => {
+							chrome.runtime.sendMessage( chrome.runtime.id, {
+								userAgent
+							}, response => {
+								resolve( response );
+							} );
+						} );
+					}
+
 					$this.notify( "Fingerprint imported" );
 				}
 				if ( _export ) {
@@ -226,6 +326,10 @@ class fingerPrintContentClass {
 					await navigator.clipboard.writeText( str );
 
 					$this.notify( "Fingerprint copied in clipboard" );
+				}
+
+				if ( clear ) {
+					$this.notify( "User-Agent cleared" );
 				}
 			}
 			sendResponse( { status: true } );

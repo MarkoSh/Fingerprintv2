@@ -26,7 +26,9 @@
 		"clipboardRead",
 		"clipboardWrite",
 		"storage",
-		"cookies"
+		"cookies",
+		"declarativeNetRequest",
+		"declarativeNetRequestWithHostAccess"
 	],
 	"icons": {
 		"16": "icon.png",
