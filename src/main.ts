@@ -1,8 +1,9 @@
-// Fingerprint 2.0.0
+// Fingerprintv2.0.1
 
 declare const chrome: any;
 
 class fingerPrintBackgroundClass {
+	userAgent: string = '';
 	constructor() {
 		const $this = this;
 
@@ -75,13 +76,13 @@ class fingerPrintBackgroundClass {
 
 		chrome.contextMenus.onClicked.addListener( async ( info, tab ) => {
 			if ( 'exportFingerprint' === info.menuItemId || 'exportFingerprintToFile' === info.menuItemId ) {
-				const url 		= new URL( tab.url );
 				const cookies 	= await chrome.cookies.getAll( {
-					domain: url.hostname
+					url: tab.url
 				} );
 
 				chrome.tabs.sendMessage( tab.id, {
 					fingerprint: {
+						userAgent: $this.userAgent,
 						_export	: cookies,
 						file	: 'exportFingerprintToFile' === info.menuItemId
 					}
@@ -156,6 +157,7 @@ class fingerPrintBackgroundClass {
 							} ]
 						},
 						condition: {
+							urlFilter: host,
 							resourceTypes: [
 								"main_frame",
 								"sub_frame",
@@ -191,6 +193,21 @@ class fingerPrintBackgroundClass {
 				status: true
 			} );
 		} );
+
+		chrome.webRequest.onSendHeaders.addListener( details => {
+			const requestHeaders 	= details.requestHeaders;
+
+			const userAgentHeader 		= requestHeaders.find( header => 'User-Agent' == header.name );
+
+			if ( userAgentHeader ) {
+				$this.userAgent = userAgentHeader.value;
+			}
+		}, {
+			urls: [ '<all_urls>' ]
+		}, [
+			'requestHeaders',
+			'extraHeaders'
+		] );
 	}
 }
 
@@ -206,13 +223,13 @@ class fingerPrintContentClass {
 
 		window.onmessage = e => {
 			if ( e.data.fingerprint ) {
-				// TODO
+				window.dispatchEvent( new CustomEvent( 'fingerprint', {} ) );
 			}
 		};
 
 		chrome.runtime.onMessage.addListener( async ( request, sender, sendResponse ) => {
 			if ( request.fingerprint ) {
-				const { _import, _export, clear } = request.fingerprint;
+				const { _import, _export, clear, userAgent } = request.fingerprint;
 
 				if ( _import ) {
 					let clipboard 	= await navigator.clipboard.readText();
@@ -288,8 +305,6 @@ class fingerPrintContentClass {
 					$this.notify( "Fingerprint imported" );
 				}
 				if ( _export ) {
-					const userAgent = navigator.userAgent;
-
 					const fingerPrint = {
 						userAgent,
 						localStorage,
@@ -327,7 +342,6 @@ class fingerPrintContentClass {
 
 					$this.notify( "Fingerprint copied in clipboard" );
 				}
-
 				if ( clear ) {
 					$this.notify( "User-Agent cleared" );
 				}
@@ -364,6 +378,18 @@ class fingerPrintContentClass {
 class fingerPrintInjectClass {
 	constructor() {
 		const $this = this;
+
+		window.postMessage( {
+			fingerprint: true
+		} );
+
+		$this.listener();
+	}
+
+	listener() {
+		const $this = this;
+
+		window.addEventListener( 'fingerprint', e => {} );
 	}
 }
 
