@@ -1,6 +1,7 @@
 # Fingerprintv2
 
-(https://raw.githubusercontent.com/MarkoSh/Fingerprintv2/main/src/icon_orig.png?token=GHSAT0AAAAAACGWYLDRJZR7Y5FYMTZE5CHIZHRDW6A)
+
+![](/src/icon_128.png){ width="800" height="600" style="display: block; margin: 0 auto" }
 
 ## Простой плагин для экспорта/импорта отпечатка браузера
 
