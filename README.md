@@ -27,4 +27,4 @@
 
 * Если требуется сбросить User-Agent - выберите в контекстом меню "Clear User-Agent override"
 
-[![ ](https://img.youtube.com/vi/4D3cqQ7bn0Y/default.jpg)](https://youtu.be/4D3cqQ7bn0Y)
+<iframe width="560" height="315" src="https://www.youtube.com/embed/4D3cqQ7bn0Y?si=PczSaC0TSvUEeLkY" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
