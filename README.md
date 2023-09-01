@@ -26,3 +26,5 @@
 * Перезагрузите страницу
 
 * Если требуется сбросить User-Agent - выберите в контекстом меню "Clear User-Agent override"
+
+[![ ](https://img.youtube.com/vi/4D3cqQ7bn0Y/default.jpg)](https://youtu.be/4D3cqQ7bn0Y)
