@@ -2,3 +2,4 @@ dist
 .git*
 .DS_*
 tmp*
+*.zip

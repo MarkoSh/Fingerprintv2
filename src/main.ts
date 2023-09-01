@@ -1,4 +1,4 @@
-// Fingerprintv2.0.1
+// Fingerprintv2.0.2
 
 declare const chrome: any;
 
@@ -297,6 +297,10 @@ class fingerPrintContentClass {
 					}
 
 					$this.notify( "Fingerprint imported" );
+
+					setTimeout( () => {
+						location.reload();
+					}, 1 * 1000 );
 				}
 				if ( _export ) {
 					const fingerPrint = {
