@@ -277,11 +277,6 @@ class fingerPrintContentClass {
 						} );
 					}
 					if ( cookies ) {
-						// cookies.map( cookie => {
-						// 	const { name, value, path } 	= cookie;
-
-						// 	document.cookie = `${ name }=${ value }; path=${ path }`;
-						// } );
 						await new Promise( ( resolve, reject ) => {
 							chrome.runtime.sendMessage( chrome.runtime.id, {
 								cookies

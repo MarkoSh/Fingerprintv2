@@ -2,6 +2,20 @@
 	"version": "2.0.0",
 	"tasks": [
 		{
+			"label": "ZIP",
+			"type": "shell",
+			"group": "build",
+			"options": {
+				"cwd": "dist"
+			},
+			"command": "zip",
+			"args": [
+				"-r",
+				"../Fingerprint.zip",
+				"*"
+			]
+		},
+		{
 			"label": "COPY",
 			"type": "shell",
 			"group": "build",
@@ -18,10 +32,7 @@
 			"problemMatcher": [
 				"$tsc"
 			],
-			"group": {
-				"kind": "build",
-				"isDefault": true
-			},
+			"group": "build",
 			"label": "tsc: build - tsconfig.json",
 			"dependsOn": [
 				"COPY"
