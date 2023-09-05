@@ -115,6 +115,14 @@ class fingerPrintBackgroundClass {
 		} );
 
 		chrome.runtime.onMessage.addListener( async ( request, sender, sendResponse ) => {
+			if ( request.getUserAgent ) {
+				sendResponse( {
+					status		: true,
+					userAgent	: $this.userAgent
+				} );
+
+				return;
+			}
 			if ( request.userAgent ) {
 				if ( navigator.userAgent !== request.userAgent ) {
 					const url 	= new URL( sender.origin );
@@ -157,7 +165,7 @@ class fingerPrintBackgroundClass {
 							} ]
 						},
 						condition: {
-							urlFilter: host,
+							// urlFilter: host,
 							resourceTypes: [
 								"main_frame",
 								"sub_frame",
@@ -193,6 +201,7 @@ class fingerPrintBackgroundClass {
 				status: true
 			} );
 		} );
+
 		chrome.webRequest.onSendHeaders.addListener( details => {
 			const requestHeaders 	= details.requestHeaders;
 
@@ -211,10 +220,47 @@ class fingerPrintBackgroundClass {
 }
 
 class fingerPrintContentClass {
+	userAgent: any;
+
 	constructor() {
 		const $this = this;
 
+		$this.getUserAgent();
+
 		$this.listener();
+	}
+
+	getUserAgent() {
+		const $this = this;
+
+		$this.injector();
+
+		chrome.runtime.sendMessage( chrome.runtime.id, {
+			getUserAgent: true
+		}, response => {
+			if ( chrome.runtime.lastError ) {
+				console.log( 'getUserAgent', response );
+			} else {
+				$this.userAgent = response.userAgent;
+			}
+		} );
+	}
+
+	injector() {
+		const $this = this;
+
+		const el = document.querySelector( `#OFCalcInject` );
+		if ( ! el ) {
+			const s = document.createElement( 'script' );
+			s.id 	= 'OFCalcInject';
+			s.src	= chrome.runtime.getURL( 'main.js' );
+
+			const root = document.querySelector( 'html' );
+
+			if ( root ) {
+				root.appendChild( s );
+			}
+		}
 	}
 
 	listener() {
@@ -222,7 +268,9 @@ class fingerPrintContentClass {
 
 		window.onmessage = e => {
 			if ( e.data.fingerprint ) {
-				window.dispatchEvent( new CustomEvent( 'fingerprint', {} ) );
+				window.dispatchEvent( new CustomEvent( 'fingerprint', {
+					detail: $this.userAgent
+				} ) );
 			}
 		};
 
@@ -387,7 +435,39 @@ class fingerPrintInjectClass {
 	listener() {
 		const $this = this;
 
-		window.addEventListener( 'fingerprint', e => {} );
+		window.addEventListener( 'fingerprint', e => {
+			$this.setUserAgent( window, e[ 'detail' ] );
+		} );
+	}
+
+	setUserAgent( window, userAgent ) {
+		// Works on Firefox, Chrome, Opera and IE9+
+		if ( navigator[ '__defineGetter__' ] ) {
+			navigator[ '__defineGetter__' ](' userAgent', function () {
+				return userAgent;
+			});
+		} else if (Object.defineProperty) {
+			Object.defineProperty(navigator, 'userAgent', {
+				get: function () {
+					return userAgent;
+				}
+			});
+		}
+		// Works on Safari
+		if ( window.navigator.userAgent !== userAgent ) {
+			var userAgentProp = {
+				get: function () {
+					return userAgent;
+				}
+			};
+			try {
+				Object.defineProperty(window.navigator, 'userAgent', userAgentProp);
+			} catch (e) {
+				window.navigator = Object.create(navigator, {
+					userAgent: userAgentProp
+				});
+			}
+		}
 	}
 }
 

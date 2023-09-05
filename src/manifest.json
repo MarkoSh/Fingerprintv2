@@ -28,7 +28,8 @@
 		"storage",
 		"cookies",
 		"webRequest",
-		"declarativeNetRequest"
+		"declarativeNetRequest",
+		"proxy"
 	],
 	"icons": {
 		"16": "icon.png",
