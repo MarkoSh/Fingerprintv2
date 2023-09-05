@@ -461,8 +461,8 @@ class fingerPrintInjectClass {
 				}
 			};
 			try {
-				Object.defineProperty(window.navigator, 'userAgent', userAgentProp);
-			} catch (e) {
+				Object.defineProperty( window.navigator, 'userAgent', userAgentProp );
+			} catch ( e ) {
 				window.navigator = Object.create(navigator, {
 					userAgent: userAgentProp
 				});
