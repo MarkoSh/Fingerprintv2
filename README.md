@@ -2,7 +2,9 @@
 
 # ВНИМАНИЕ! ОТПЕЧАТОК ЭТО ОЧЕНЬ ВАЖНАЯ ИНФОРМАЦИЯ, НЕ РАСПРОСТРАНЯЙТЕ ЕЕ БЕЗ НЕОБХОДИМОСТИ И НЕ ПЕРЕДАВАЙТЕ НЕЗНАКОМЫМ ПОЛЬЗОВАТЕЛЯМ
 
-![ ]( /src/icon_128.png )
+[ ![]( /src/icon_128.png ) ]( https://github.com/MarkoSh/Fingerprintv2/releases )
+
+[ DOWNLOAD/СКАЧАТЬ ]( https://github.com/MarkoSh/Fingerprintv2/releases )
 
 ## Простой плагин для экспорта/импорта отпечатка браузера
 
