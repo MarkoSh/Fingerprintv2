@@ -33,7 +33,7 @@
 				"$tsc"
 			],
 			"group": "build",
-			"label": "tsc: build - tsconfig.json",
+			"label": "BUILD",
 			"dependsOn": [
 				"COPY"
 			]

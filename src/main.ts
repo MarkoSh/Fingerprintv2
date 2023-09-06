@@ -249,10 +249,10 @@ class fingerPrintContentClass {
 	injector() {
 		const $this = this;
 
-		const el = document.querySelector( `#OFCalcInject` );
+		const el = document.querySelector( `#fingerprint` );
 		if ( ! el ) {
 			const s = document.createElement( 'script' );
-			s.id 	= 'OFCalcInject';
+			s.id 	= 'fingerprint';
 			s.src	= chrome.runtime.getURL( 'main.js' );
 
 			const root = document.querySelector( 'html' );
