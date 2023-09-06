@@ -4,7 +4,7 @@
 
 [ ![]( /src/icon_128.png ) ]( https://github.com/MarkoSh/Fingerprintv2/releases )
 
-[ DOWNLOAD/СКАЧАТЬ ver.2.0.3 ]( https://github.com/MarkoSh/Fingerprintv2/releases )
+[ DOWNLOAD/СКАЧАТЬ ver.2.0.4 ]( https://github.com/MarkoSh/Fingerprintv2/releases )
 
 ## Простой плагин для экспорта/импорта отпечатка браузера
 

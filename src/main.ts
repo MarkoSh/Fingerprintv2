@@ -1,4 +1,4 @@
-// Fingerprintv2.0.3
+// Fingerprintv2.0.4
 
 declare const chrome: any;
 
