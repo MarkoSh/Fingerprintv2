@@ -1,8 +1,4 @@
-<<<<<<< Updated upstream
 // Fingerprintv2.0.4
-=======
-// Fingerprintv2.0.3
->>>>>>> Stashed changes
 
 declare const chrome: any;
 
@@ -253,17 +249,10 @@ class fingerPrintContentClass {
 	injector() {
 		const $this = this;
 
-<<<<<<< Updated upstream
 		const el = document.querySelector( `#fingerprint` );
 		if ( ! el ) {
 			const s = document.createElement( 'script' );
 			s.id 	= 'fingerprint';
-=======
-		const el = document.querySelector( `#OFCalcInject` );
-		if ( ! el ) {
-			const s = document.createElement( 'script' );
-			s.id 	= 'OFCalcInject';
->>>>>>> Stashed changes
 			s.src	= chrome.runtime.getURL( 'main.js' );
 
 			const root = document.querySelector( 'html' );
