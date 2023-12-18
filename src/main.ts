@@ -158,10 +158,6 @@ class fingerPrintBackgroundClass {
 								header		: 'User-Agent',
 								operation	: chrome.declarativeNetRequest.HeaderOperation.SET,
 								value		: request.userAgent
-							}, {
-								header		: 'Customizer',
-								operation	: chrome.declarativeNetRequest.HeaderOperation.SET,
-								value		: request.userAgent
 							} ]
 						},
 						condition: {
