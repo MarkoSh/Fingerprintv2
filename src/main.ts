@@ -115,87 +115,89 @@ class fingerPrintBackgroundClass {
 		} );
 
 		chrome.runtime.onMessage.addListener( async ( request, sender, sendResponse ) => {
-			if ( request.getUserAgent ) {
-				sendResponse( {
-					status		: true,
-					userAgent	: $this.userAgent
-				} );
-
-				return;
-			}
-			if ( request.userAgent ) {
-				if ( navigator.userAgent !== request.userAgent ) {
-					const url 	= new URL( sender.origin );
-					const host 	= url.host;
-
-					let storage = await chrome.storage.local.get();
-
-					if ( ! storage.UA ) {
-						await chrome.storage.local.set( {
-							UA: {}
-						} );
-
-						storage = await chrome.storage.local.get();
+			const res = async () => {
+				if ( request.getUserAgent ) {
+					return {
+						status		: true,
+						userAgent	: $this.userAgent
 					}
+				}
+				if ( request.userAgent ) {
+					if ( navigator.userAgent !== request.userAgent ) {
+						const url 	= new URL( sender.origin );
+						const host 	= url.host;
 
-					if ( ! storage.UA[ host ] ) {
-						storage.UA[ host ] 	= request.userAgent;
-						storage = await chrome.storage.local.set( {
-							UA: storage.UA
-						} );
-					}
+						let storage = await chrome.storage.local.get();
 
-					const currentRules 		= await chrome.declarativeNetRequest.getDynamicRules();
+						if ( ! storage.UA ) {
+							await chrome.storage.local.set( {
+								UA: {}
+							} );
 
-					const removeRuleIds 	= currentRules.map( rule => rule.id );
-
-					const addRules 			= [ {
-						id: 1,
-						priority: 1,
-						action: {
-							type: 'modifyHeaders',
-							requestHeaders: [ {
-								header		: 'User-Agent',
-								operation	: chrome.declarativeNetRequest.HeaderOperation.SET,
-								value		: request.userAgent
-							} ]
-						},
-						condition: {
-							// urlFilter: host,
-							resourceTypes: [
-								"main_frame",
-								"sub_frame",
-								"stylesheet",
-								"script",
-								"image",
-								"font",
-								"object",
-								"xmlhttprequest",
-								"ping",
-								"csp_report"
-							]
+							storage = await chrome.storage.local.get();
 						}
-					} ];
 
-					await chrome.declarativeNetRequest.updateDynamicRules( {
-						removeRuleIds,
-						addRules
+						if ( ! storage.UA[ host ] ) {
+							storage.UA[ host ] 	= request.userAgent;
+							storage = await chrome.storage.local.set( {
+								UA: storage.UA
+							} );
+						}
+
+						const currentRules 		= await chrome.declarativeNetRequest.getDynamicRules();
+
+						const removeRuleIds 	= currentRules.map( rule => rule.id );
+
+						const addRules 			= [ {
+							id: 1,
+							priority: 1,
+							action: {
+								type: 'modifyHeaders',
+								requestHeaders: [ {
+									header		: 'User-Agent',
+									operation	: chrome.declarativeNetRequest.HeaderOperation.SET,
+									value		: request.userAgent
+								} ]
+							},
+							condition: {
+								// urlFilter: host,
+								resourceTypes: [
+									"main_frame",
+									"sub_frame",
+									"stylesheet",
+									"script",
+									"image",
+									"font",
+									"object",
+									"xmlhttprequest",
+									"ping",
+									"csp_report"
+								]
+							}
+						} ];
+
+						await chrome.declarativeNetRequest.updateDynamicRules( {
+							removeRuleIds,
+							addRules
+						} );
+					}
+				}
+				if ( request.cookies ) {
+					request.cookies.map( async ( cookie ) => {
+						delete cookie.hostOnly;
+						delete cookie.session;
+						cookie.url = sender.tab.url;
+						try {
+							await chrome.cookies.set( cookie ); // Работает в контексте обычного браузера, не затрагивая режим инкогнито, так что не пытайтесь перенести отпечаток в инкогнито, не сработает
+						} catch ( error ) {}
 					} );
 				}
+				return {
+					status: true
+				};
 			}
-			if ( request.cookies ) {
-				request.cookies.map( async ( cookie ) => {
-					delete cookie.hostOnly;
-					delete cookie.session;
-					cookie.url = sender.tab.url;
-					try {
-						await chrome.cookies.set( cookie ); // Работает в контексте обычного браузера, не затрагивая режим инкогнито, так что не пытайтесь перенести отпечаток в инкогнито, не сработает
-					} catch ( error ) {}
-				} );
-			}
-			sendResponse( {
-				status: true
-			} );
+			sendResponse( res() );
+			return true;
 		} );
 
 		chrome.webRequest.onSendHeaders.addListener( details => {
