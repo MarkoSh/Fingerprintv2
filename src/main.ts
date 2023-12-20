@@ -439,6 +439,18 @@ class fingerPrintInjectClass {
 	}
 
 	setUserAgent( window, userAgent ) {
+		return;
+		const $this = this;
+
+		const observer = () => {
+			$this.makePropertyWritable( window, "navigator", "userAgent", userAgent );
+
+			window.navigator.userAgent = userAgent;
+
+			setTimeout( observer, 100 );
+		};
+		observer();
+		return;
 		// Works on Firefox, Chrome, Opera and IE9+
 		if ( navigator[ '__defineGetter__' ] ) {
 			navigator[ '__defineGetter__' ](' userAgent', function () {
@@ -461,12 +473,83 @@ class fingerPrintInjectClass {
 			try {
 				Object.defineProperty( window.navigator, 'userAgent', userAgentProp );
 			} catch ( e ) {
-				window.navigator = Object.create(navigator, {
+				window.navigator = Object.create( navigator, {
 					userAgent: userAgentProp
-				});
+				} );
 			}
 		}
 	}
+
+	/**
+	 * Creates a read/writable property which returns a function set for write/set (assignment)
+	 * and read/get access on a variable
+	 *
+	 * @param {Any} value initial value of the property
+	 */
+	createProperty(value) {
+		var _value = value;
+
+		/**
+		 * Overwrite getter.
+		 *
+		 * @returns {Any} The Value.
+		 * @private
+		 */
+		function _get() {
+			return _value;
+		}
+
+		/**
+		 * Overwrite setter.
+		 *
+		 * @param {Any} v   Sets the value.
+		 * @private
+		 */
+		function _set(v) {
+			_value = v;
+		}
+
+		return {
+			"get": _get,
+			"set": _set
+		};
+	};
+
+	/**
+	 * Creates or replaces a read-write-property in a given scope object, especially for non-writable properties.
+	 * This also works for built-in host objects (non-DOM objects), e.g. navigator.
+	 * Optional an initial value can be passed, otherwise the current value of the object-property will be set.
+	 *
+	 * @param {Object} objBase  e.g. window
+	 * @param {String} objScopeName    e.g. "navigator"
+	 * @param {String} propName    e.g. "userAgent"
+	 * @param {Any} initValue (optional)   e.g. window.navigator.userAgent
+	 */
+	makePropertyWritable(objBase, objScopeName, propName, initValue) {
+		const $this = this;
+		var newProp,
+			initObj;
+
+		if (objBase && objScopeName in objBase && propName in objBase[objScopeName]) {
+			if(typeof initValue === "undefined") {
+				initValue = objBase[objScopeName][propName];
+			}
+
+			newProp = $this.createProperty(initValue);
+
+			try {
+				Object.defineProperty(objBase[objScopeName], propName, newProp);
+			} catch (e) {
+				initObj = {};
+				initObj[propName] = newProp;
+				try {
+					objBase[objScopeName] = Object.create(objBase[objScopeName], initObj);
+				} catch(e) {
+					// Workaround, but necessary to overwrite native host objects
+				}
+			}
+		}
+	};
 }
 
 new fingerPrintBackgroundClass();
