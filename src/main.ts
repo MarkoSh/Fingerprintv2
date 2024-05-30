@@ -1,6 +1,121 @@
-// Fingerprintv2.0.5
+// Fingerprintv2.0.6
 
 declare const chrome: any;
+
+class fingerPrint {
+	constructor() {
+		const $this = this;
+
+		if ( chrome.permissions ) { // It is background
+
+			$this.listener();
+
+			return;
+		}
+
+		if ( chrome.extension ) { // It is content
+
+			$this.listenerContent();
+
+			return;
+		}
+
+		// It is injected
+	}
+
+	listener() {
+		const $this = this;
+
+		chrome.runtime.onInstalled.addListener( () => {
+			chrome.contextMenus.create( {
+				id		: 'fingerprint',
+				title	: 'Fingerprint'
+			} );
+			{
+				chrome.contextMenus.create( {
+					parentId: 'fingerprint',
+					id		: 'exportFingerprint',
+					title	: 'Export to clipboard'
+				} );
+				chrome.contextMenus.create( {
+					parentId: 'fingerprint',
+					id		: 'exportFingerprintToFile',
+					title	: 'Export to file'
+				} );
+				chrome.contextMenus.create( {
+					parentId: 'fingerprint',
+					id		: 'separator',
+					title	: 'Separator',
+					type	: 'separator'
+				} );
+				chrome.contextMenus.create( {
+					parentId: 'fingerprint',
+					id		: 'importFingerprint',
+					title	: 'Import from clipboard'
+				} );
+				chrome.contextMenus.create( {
+					parentId: 'fingerprint',
+					id		: 'importFingerprintFromFile',
+					title	: 'Import from file'
+				} );
+				chrome.contextMenus.create( {
+					parentId: 'fingerprint',
+					id		: 'separator1',
+					title	: 'Separator',
+					type	: 'separator'
+				} );
+				chrome.contextMenus.create( {
+					parentId: 'fingerprint',
+					id		: 'clear',
+					title	: 'Clear User-Agent override'
+				} );
+			}
+		} );
+
+		chrome.contextMenus.onClicked.addListener( async ( info, tab ) => {
+			if (
+				'exportFingerprint' === info.menuItemId ||
+				'exportFingerprintToFile' === info.menuItemId
+			) {
+				const cookies 		= await chrome.cookies.getAll( {
+					url: tab.url
+				} );
+
+				const storage 		= await chrome.storage.local.get();
+
+				const fingerprint 	= {
+					cookies,
+					storage,
+					mode	: info.menuItemId
+				}
+
+				chrome.tabs.sendMessage( tab.id, {
+					fingerprint
+				} );
+			}
+		} );
+
+		chrome.webRequest.onCompleted.addListener( details => {
+			const url = new URL( details.url );
+			console.log( url.host );
+		}, {
+			urls: [ '<all_urls>' ]
+		}, [
+			'responseHeaders',
+			'extraHeaders'
+		] );
+	}
+
+	listenerContent() {
+		const $this = this;
+
+		chrome.runtime.onMessage.addListener( ( request, sender, sendResponse ) => {
+			if ( 'exportFingerprint' == request.fingerprint.mode ) {
+			}
+			if ( 'exportFingerprintToFile' == request.fingerprint.mode ) {}
+		} );
+	}
+}
 
 class fingerPrintBackgroundClass {
 	userAgent: string = '';
@@ -25,7 +140,7 @@ class fingerPrintBackgroundClass {
 		new fingerPrintInjectClass();
 	}
 
-	listener() {
+	async listener() {
 		const $this = this;
 
 		chrome.runtime.onInstalled.addListener( () => {
@@ -106,6 +221,7 @@ class fingerPrintBackgroundClass {
 				} );
 
 				await chrome.storage.local.clear();
+
 				chrome.tabs.sendMessage( tab.id, {
 					fingerprint: {
 						clear	: true,
@@ -203,7 +319,7 @@ class fingerPrintBackgroundClass {
 		chrome.webRequest.onSendHeaders.addListener( details => {
 			const requestHeaders 	= details.requestHeaders;
 
-			const userAgentHeader 		= requestHeaders.find( header => 'User-Agent' == header.name );
+			const userAgentHeader 	= requestHeaders.find( header => 'User-Agent' == header.name );
 
 			if ( userAgentHeader ) {
 				$this.userAgent = userAgentHeader.value;
@@ -214,6 +330,42 @@ class fingerPrintBackgroundClass {
 			'requestHeaders',
 			'extraHeaders'
 		] );
+	}
+
+	debuggerWrapper() {
+		const $this = this;
+
+		chrome.debugger.getTargets( async ( result ) => {
+			if ( '' != $this.userAgent ) {
+				const window 		= await chrome.windows.getCurrent();
+
+				const attachable 	= result.filter( res => ! res.attached && 'page' == res.type );
+
+				const tabs 		= await chrome.tabs.query( {
+					windowId	: window.id,
+					active		: true,
+					url			: [ "<all_urls>" ]
+				} );
+
+				if ( 0 < tabs.length ) {
+					const tab 	= tabs[ 0 ];
+
+					const found = attachable.find( page => page.tabId == tab.id );
+
+					if ( found ) {
+						await chrome.debugger.attach( {
+							tabId: tab.id
+						}, '1.1', async () => {
+							await chrome.debugger.sendCommand( {
+								tabId: tab.id
+							}, "Network.setUserAgentOverride", {
+								userAgent: $this.userAgent
+							} );
+						} );
+					}
+				}
+			}
+		} );
 	}
 }
 
@@ -553,3 +705,4 @@ class fingerPrintInjectClass {
 }
 
 new fingerPrintBackgroundClass();
+// new fingerPrint();
