@@ -1,7 +1,7 @@
 {
 	"manifest_version": 3,
-	"name": "Fingerprint v2.0.6",
-	"version": "2.0.6",
+	"name": "Fingerprint v2.0.7",
+	"version": "2.0.7",
 	"content_scripts": [
 		{
 			"matches": [
@@ -17,7 +17,7 @@
 		"service_worker": "main.js"
 	},
 	"action": {
-		"default_title": "Fingerprint v2.0.6",
+		"default_title": "Fingerprint v2.0.7",
 		"default_icon": "icon.png"
 	},
 	"host_permissions": ["<all_urls>"],

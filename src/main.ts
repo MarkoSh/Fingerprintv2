@@ -1,4 +1,4 @@
-// Fingerprintv2.0.6
+// Fingerprintv2.0.7
 
 declare const chrome: any;
 
@@ -300,12 +300,22 @@ class fingerPrintBackgroundClass {
 				}
 				if ( request.cookies ) {
 					request.cookies.map( async ( cookie ) => {
+						cookie.url = sender.tab.url;
+
 						delete cookie.hostOnly;
 						delete cookie.session;
-						cookie.url = sender.tab.url;
+
 						try {
+							const cookie_ = {
+								name: cookie.name,
+								url: cookie.url,
+							};
+							await chrome.cookies.remove( cookie_ );
+
 							await chrome.cookies.set( cookie ); // Работает в контексте обычного браузера, не затрагивая режим инкогнито, так что не пытайтесь перенести отпечаток в инкогнито, не сработает
-						} catch ( error ) {}
+						} catch ( error ) {
+							debugger;
+						}
 					} );
 				}
 				return {
